@@ -1,0 +1,22 @@
+{
+  "KPackageStructure": "Plasma/Applet",
+  "KPackage": {
+    "Type": "Plasma/Applet"
+  },
+  "KPlugin": {
+    "Id": "com.vincent.kol.external2",
+    "Name": "KOL Browser",
+    "Description": "Plasma 6 widget for Ollama cloud usage.",
+    "Icon": "network-connect",
+    "Version": "0.2.1",
+    "Category": "Utilities",
+    "License": "MIT",
+    "Website": "https://ollama.com/settings",
+    "Authors": [
+      {
+        "Name": "GitHub Copilot"
+      }
+    ]
+  },
+  "X-Plasma-API-Minimum-Version": "6.0"
+}
