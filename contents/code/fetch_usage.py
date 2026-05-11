@@ -30,7 +30,7 @@ LOGIN_MARKERS = (
 def get_lang():
     """Return 'fr' for French locale, 'en' otherwise."""
     try:
-        loc = locale.getdefaultlocale()[0] or locale.getlocale()[0] or "en"
+        loc = locale.getlocale()[0] or "en"
     except Exception:
         loc = "en"
     return "fr" if loc.lower().startswith("fr") else "en"
@@ -209,7 +209,16 @@ def compact_text(html):
 
 
 def extract_percent(label, html_text):
-    match = re.search(rf"{label}[^%]{{0,160}}?(\d+(?:[.,]\d+)?)\s*%", html_text, flags=re.I)
+    # Prefer specific patterns like "Session usage 9%" over
+    # "session and weekly limits" which would match the wrong value.
+    specific_pattern = label + r"\s+usage\s+(\d+(?:[.,]\d+)?)\s*%"
+    specific = re.search(specific_pattern, html_text, flags=re.I)
+    if specific:
+        return float(specific.group(1).replace(",", "."))
+
+    # Fallback: "<label> <number>%" with minimal gap
+    fallback_pattern = label + r"[^%]{0,40}?(\d+(?:[.,]\d+)?)\s*%"
+    match = re.search(fallback_pattern, html_text, flags=re.I)
     if not match:
         return None
 
@@ -227,13 +236,14 @@ def parse_usage(html):
             "message": msg("login"),
         }
 
-    session_value = extract_percent("session", lower_html)
+    # Try compacted text first (more reliable — no HTML tags splitting keywords)
+    session_value = extract_percent("session", lower_text)
     if session_value is None:
-        session_value = extract_percent("session", lower_text)
+        session_value = extract_percent("session", lower_html)
 
-    weekly_value = extract_percent("weekly", lower_html)
+    weekly_value = extract_percent("weekly", lower_text)
     if weekly_value is None:
-        weekly_value = extract_percent("weekly", lower_text)
+        weekly_value = extract_percent("weekly", lower_html)
 
     if session_value is None or weekly_value is None:
         return {

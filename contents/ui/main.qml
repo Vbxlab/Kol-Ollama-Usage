@@ -26,10 +26,11 @@ PlasmoidItem {
 
     // Config
     property int cfgRefreshInterval: Plasmoid.configuration.refreshInterval || 5
+    property int cfgLanguage: Plasmoid.configuration.language || 0  // 0=Auto, 1=EN, 2=FR
 
     implicitWidth: Kirigami.Units.gridUnit * 14
     implicitHeight: Kirigami.Units.gridUnit * 8
-    Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
+    Plasmoid.backgroundHints: PlasmaCore.Types.DefaultBackground
 
     function tr(source) {
         // Simple bilingual lookup: English | French
@@ -56,8 +57,15 @@ PlasmoidItem {
             "network_error_fr":      "Erreur réseau en contactant Ollama.",
         };
 
-        // Detect French locale
-        const isFrench = Qt.locale().name.startsWith("fr");
+        // Language: 0=Auto (system locale), 1=English, 2=French
+        let isFrench;
+        if (cfgLanguage === 2) {
+            isFrench = true;
+        } else if (cfgLanguage === 1) {
+            isFrench = false;
+        } else {
+            isFrench = Qt.locale().name.startsWith("fr");
+        }
 
         if (isFrench) {
             const frKey = source + "_fr";
