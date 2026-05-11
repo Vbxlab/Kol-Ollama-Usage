@@ -1,3 +1,6 @@
+// KOL Browser — Plasma 6 widget for Ollama cloud token usage
+// Authors: Vbxlab, Aï
+
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
@@ -12,24 +15,71 @@ PlasmoidItem {
     id: root
 
     readonly property string settingsUrl: "https://ollama.com/settings"
-    readonly property int refreshIntervalMs: 300000
     readonly property string helperPath: Qt.resolvedUrl("../code/fetch_usage.py").toString().replace("file://", "")
 
     property real sessionValue: 0
     property real weeklyValue: 0
     property bool authenticated: false
     property bool busy: false
-    property string statusMessage: "Connectez-vous a Ollama dans le navigateur, puis actualisez."
+    property string statusMessage: ""
     property string lastCommand: ""
+
+    // Config
+    property int cfgRefreshInterval: Plasmoid.configuration.refreshInterval || 5
 
     implicitWidth: Kirigami.Units.gridUnit * 14
     implicitHeight: Kirigami.Units.gridUnit * 8
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
 
+    function tr(source) {
+        // Simple bilingual lookup: English | French
+        const translations = {
+            "session":               "Session",
+            "weekly":                "Weekly",
+            "click_o":               "Click the Ollama logo to open the connection.",
+            "click_o_fr":            "Cliquez sur le logo Ollama pour ouvrir la connexion.",
+            "login_required":        "Log in to Ollama in your browser, then refresh.",
+            "login_required_fr":     "Connectez-vous à Ollama dans le navigateur, puis actualisez.",
+            "no_cookie":             "No Ollama cookie found. Log in with your default browser, then refresh.",
+            "no_cookie_fr":          "Aucun cookie Ollama trouvé. Connectez-vous dans le navigateur par défaut puis actualisez.",
+            "read_fail":             "Could not read Ollama quotas.",
+            "read_fail_fr":          "Impossible de lire les quotas Ollama.",
+            "invalid_resp":          "Invalid response from Ollama helper.",
+            "invalid_resp_fr":       "Réponse invalide du helper Ollama.",
+            "python_missing":        "Python 3 not found. Please install python3.",
+            "python_missing_fr":     "Python 3 introuvable. Veuillez installer python3.",
+            "script_missing":        "Helper script not found.",
+            "script_missing_fr":     "Script helper introuvable.",
+            "timeout":               "Request to Ollama timed out.",
+            "timeout_fr":            "La requête vers Ollama a expiré.",
+            "network_error":         "Network error contacting Ollama.",
+            "network_error_fr":      "Erreur réseau en contactant Ollama.",
+        };
+
+        // Detect French locale
+        const isFrench = Qt.locale().name.startsWith("fr");
+
+        if (isFrench) {
+            const frKey = source + "_fr";
+            if (translations[frKey] !== undefined) return translations[frKey];
+        }
+        return translations[source] || source;
+    }
+
     function refreshUsage() {
+        if (busy) return;
+
+        // Validate helper path
+        if (!helperPath || helperPath === "") {
+            authenticated = false;
+            statusMessage = tr("script_missing");
+            return;
+        }
+
         const command = "python3 \"" + helperPath + "\"";
         lastCommand = command;
         busy = true;
+        statusMessage = "";
         executableSource.connectSource(command);
     }
 
@@ -40,7 +90,7 @@ PlasmoidItem {
     function applyResult(result) {
         if (!result) {
             authenticated = false;
-            statusMessage = "Impossible de lire les quotas Ollama.";
+            statusMessage = tr("read_fail");
             return;
         }
 
@@ -53,14 +103,18 @@ PlasmoidItem {
         }
 
         authenticated = false;
-        statusMessage = result.message || "Connectez-vous a Ollama dans le navigateur, puis actualisez.";
+        if (result.status === "login") {
+            statusMessage = tr("login_required");
+        } else {
+            statusMessage = result.message || tr("read_fail");
+        }
     }
 
     Component.onCompleted: refreshUsage()
 
     Timer {
         id: refreshTimer
-        interval: root.refreshIntervalMs
+        interval: cfgRefreshInterval * 60000
         repeat: true
         running: true
         onTriggered: root.refreshUsage()
@@ -79,9 +133,19 @@ PlasmoidItem {
             root.busy = false;
 
             const stdout = (data["stdout"] || "").trim();
+            const stderr = (data["stderr"] || "").trim();
+            const exitCode = data["exit code"];
+
+            // Python3 not found
+            if (exitCode !== 0 && stderr && (stderr.includes("not found") || stderr.includes("command not found") || stderr.includes("No such file"))) {
+                root.authenticated = false;
+                root.statusMessage = tr("python_missing");
+                return;
+            }
+
             if (!stdout) {
                 root.authenticated = false;
-                root.statusMessage = (data["stderr"] || "Impossible de recuperer les donnees Ollama.").trim();
+                root.statusMessage = stderr || tr("read_fail");
                 return;
             }
 
@@ -89,7 +153,7 @@ PlasmoidItem {
                 root.applyResult(JSON.parse(stdout));
             } catch (error) {
                 root.authenticated = false;
-                root.statusMessage = "Reponse invalide du helper Ollama.";
+                root.statusMessage = tr("invalid_resp");
             }
         }
     }
@@ -125,6 +189,10 @@ PlasmoidItem {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: root.refreshUsage()
                 }
+
+                PlasmaComponents3.ToolTip {
+                    text: root.busy ? "" : root.tr("login_required").split(",")[0]
+                }
             }
 
             Rectangle {
@@ -150,6 +218,10 @@ PlasmoidItem {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: root.openSettings()
                 }
+
+                PlasmaComponents3.ToolTip {
+                    text: "ollama.com/settings"
+                }
             }
         }
 
@@ -168,7 +240,7 @@ PlasmoidItem {
 
                     PlasmaComponents3.Label {
                         Layout.fillWidth: true
-                        text: "session"
+                        text: root.tr("session")
                         font.weight: Font.DemiBold
                         color: Kirigami.Theme.textColor
                     }
@@ -205,7 +277,7 @@ PlasmoidItem {
 
                     PlasmaComponents3.Label {
                         Layout.fillWidth: true
-                        text: "weekly"
+                        text: root.tr("weekly")
                         font.weight: Font.DemiBold
                         color: Kirigami.Theme.textColor
                     }
@@ -250,7 +322,7 @@ PlasmoidItem {
 
                 PlasmaComponents3.Label {
                     Layout.alignment: Qt.AlignHCenter
-                    text: root.statusMessage
+                    text: root.statusMessage || root.tr("login_required")
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
                     color: Kirigami.Theme.textColor
@@ -258,7 +330,7 @@ PlasmoidItem {
 
                 PlasmaComponents3.Label {
                     Layout.alignment: Qt.AlignHCenter
-                    text: "Cliquez sur le logo Ollama pour ouvrir la connexion."
+                    text: root.tr("click_o")
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
                     color: Kirigami.Theme.disabledTextColor

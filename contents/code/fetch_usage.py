@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import configparser
 import json
+import locale
 import os
 import pathlib
 import re
@@ -13,7 +14,8 @@ import urllib.request
 
 
 SETTINGS_URL = "https://ollama.com/settings"
-USER_AGENT = "KOL-Plasma6-Widget/0.1"
+USER_AGENT = "KOL-Plasma6-Widget/0.2"
+
 LOGIN_MARKERS = (
     "continue with google",
     "continue with github",
@@ -23,6 +25,45 @@ LOGIN_MARKERS = (
     "gaan voort",
     "create account",
 )
+
+
+def get_lang():
+    """Return 'fr' for French locale, 'en' otherwise."""
+    try:
+        loc = locale.getdefaultlocale()[0] or locale.getlocale()[0] or "en"
+    except Exception:
+        loc = "en"
+    return "fr" if loc.lower().startswith("fr") else "en"
+
+
+MESSAGES = {
+    "login": {
+        "en": "Log in to Ollama in your browser, then refresh.",
+        "fr": "Connectez-vous \u00e0 Ollama dans le navigateur, puis actualisez.",
+    },
+    "no_cookie": {
+        "en": "No Ollama cookie found. Log in with your default browser, then refresh.",
+        "fr": "Aucun cookie Ollama trouv\u00e9. Connectez-vous dans le navigateur par d\u00e9faut puis actualisez.",
+    },
+    "quotas_not_found": {
+        "en": "Browser session detected, but Ollama quotas not found on the page.",
+        "fr": "Session navigateur d\u00e9tect\u00e9e, mais quotas introuvables sur la page Ollama.",
+    },
+    "http_error": {
+        "en": "Ollama responded with HTTP {code}.",
+        "fr": "Ollama a r\u00e9pondu avec HTTP {code}.",
+    },
+    "fetch_error": {
+        "en": "Cannot contact Ollama: {error}",
+        "fr": "Impossible de contacter Ollama : {error}",
+    },
+}
+
+
+def msg(key, **kwargs):
+    lang = get_lang()
+    template = MESSAGES.get(key, {}).get(lang, MESSAGES.get(key, {}).get("en", key))
+    return template.format(**kwargs)
 
 
 def print_json(payload):
@@ -183,7 +224,7 @@ def parse_usage(html):
     if any(marker in lower_text for marker in LOGIN_MARKERS):
         return {
             "status": "login",
-            "message": "Connectez-vous a Ollama dans le navigateur, puis actualisez."
+            "message": msg("login"),
         }
 
     session_value = extract_percent("session", lower_html)
@@ -197,7 +238,7 @@ def parse_usage(html):
     if session_value is None or weekly_value is None:
         return {
             "status": "error",
-            "message": "Session navigateur detectee, mais quotas introuvables sur la page Ollama."
+            "message": msg("quotas_not_found"),
         }
 
     return {
@@ -213,7 +254,7 @@ def main():
         print_json(
             {
                 "status": "login",
-                "message": "Aucun cookie Ollama trouve. Connectez-vous dans le navigateur par defaut puis actualisez."
+                "message": msg("no_cookie"),
             }
         )
         return 0
@@ -224,7 +265,7 @@ def main():
         print_json(
             {
                 "status": "error",
-                "message": f"Ollama a repondu avec HTTP {error.code}."
+                "message": msg("http_error", code=error.code),
             }
         )
         return 0
@@ -232,7 +273,7 @@ def main():
         print_json(
             {
                 "status": "error",
-                "message": f"Impossible de contacter Ollama: {error}"
+                "message": msg("fetch_error", error=error),
             }
         )
         return 0

@@ -1,0 +1,11 @@
+# IDE / editor
+.idea/
+*.iml
+
+# KDevelop
+.kdev4/
+*.kdev4
+
+# OS
+.DS_Store
+Thumbs.db
