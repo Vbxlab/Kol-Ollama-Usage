@@ -32,6 +32,23 @@ PlasmoidItem {
     implicitHeight: Kirigami.Units.gridUnit * 8
     Plasmoid.backgroundHints: PlasmaCore.Types.DefaultBackground
 
+    function barColor(value) {
+        if (value >= 95) return Kirigami.Theme.negativeTextColor
+        if (value >= 80) return Kirigami.Theme.neutralTextColor
+        return Kirigami.Theme.highlightColor
+    }
+
+    function barColorWeekly(value) {
+        if (value >= 95) return Kirigami.Theme.negativeTextColor
+        if (value >= 80) return Kirigami.Theme.neutralTextColor
+        return Qt.rgba(
+            Kirigami.Theme.positiveTextColor.r,
+            Kirigami.Theme.positiveTextColor.g,
+            Kirigami.Theme.positiveTextColor.b,
+            0.85
+        )
+    }
+
     function tr(source) {
         // Simple bilingual lookup: English | French
         const translations = {
@@ -275,7 +292,7 @@ PlasmoidItem {
                             width: parent.width * Math.max(0, Math.min(100, root.sessionValue)) / 100
                             height: parent.height
                             radius: height / 2
-                            color: Kirigami.Theme.highlightColor
+                            color: root.barColor(root.sessionValue)
                         }
 
                         PlasmaComponents3.Label {
@@ -312,12 +329,7 @@ PlasmoidItem {
                             width: parent.width * Math.max(0, Math.min(100, root.weeklyValue)) / 100
                             height: parent.height
                             radius: height / 2
-                            color: Qt.rgba(
-                                Kirigami.Theme.positiveTextColor.r,
-                                Kirigami.Theme.positiveTextColor.g,
-                                Kirigami.Theme.positiveTextColor.b,
-                                0.85
-                            )
+                            color: root.barColorWeekly(root.weeklyValue)
                         }
 
                         PlasmaComponents3.Label {

@@ -20,9 +20,8 @@
 ## 🔲 À faire
 
 - [ ] Tester le panneau de config (Configurer KOL Browser — s'ouvre mais comportement à valider)
-- [ ] Ajouter des tooltips / infobulles sur les barres de progression
-- [ ] Ajouter un indicateur visuel quand les quotas sont élevés (>80% = orange, >95% = rouge)
-- [ ] Supporter les cookies chiffrés Chromium (keyring — ne marche pas actuellement sur Chrome/Chromium)
+- [ ] Ajouter un champ "Cookie" dans la config du widget (OLLAMA_COOKIE_HEADER) comme alternative pour les navigateurs chiffrés
+- [ ] Documenter OLLAMA_COOKIE_HEADER dans le README
 - [ ] Tester l'installation et le fonctionnement sur une session Plasma propre
 - [ ] Ajouter un CHANGELOG.md
 - [ ] Publier sur le KDE Store / Pling
