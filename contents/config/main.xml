@@ -11,11 +11,9 @@
       <min>1</min>
       <max>60</max>
     </entry>
-    <entry name="Language" type="Int">
-      <label>Language: 0=Auto, 1=English, 2=French</label>
-      <default>0</default>
-      <min>0</min>
-      <max>2</max>
+    <entry name="CookieHeader" type="String">
+      <label>Manual Ollama cookie header (overrides browser cookies)</label>
+      <default></default>
     </entry>
   </group>
 </kcfg>

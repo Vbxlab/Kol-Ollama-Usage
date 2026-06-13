@@ -11,14 +11,14 @@ Item {
     id: generalConfig
 
     property alias cfg_RefreshInterval: refreshSpin.value
-    property alias cfg_Language: langCombo.currentIndex
+    property alias cfg_CookieHeader: cookieField.text
 
     ColumnLayout {
         anchors.fill: parent
         spacing: Kirigami.Units.largeSpacing
 
         QQC2.Label {
-            text: "Refresh interval (minutes) / Intervalle de rafraîchissement (minutes) :"
+            text: i18n("Refresh interval (minutes):")
             font.weight: Font.DemiBold
         }
 
@@ -37,18 +37,20 @@ Item {
         }
 
         QQC2.Label {
-            text: "Language / Langue :"
+            text: i18n("Ollama cookie header (optional, overrides browser cookies):")
             font.weight: Font.DemiBold
+            wrapMode: Text.WordWrap
+            Layout.fillWidth: true
         }
 
-        QQC2.ComboBox {
-            id: langCombo
-            model: ["Auto", "English", "Français"]
-            // 0=Auto, 1=English, 2=French
+        QQC2.TextField {
+            id: cookieField
+            Layout.fillWidth: true
+            placeholderText: i18n("Paste your cookie header here…")
         }
 
         QQC2.Label {
-            text: "'Auto' follows your system locale. / « Auto » suit la langue du système."
+            text: i18n("Only needed if browser cookies are unavailable (e.g. encrypted Chromium cookies). Get it from your browser's DevTools → Network → request headers → Cookie.")
             font.pointSize: Kirigami.Theme.smallFont.pointSize
             color: Kirigami.Theme.disabledTextColor
             wrapMode: Text.WordWrap

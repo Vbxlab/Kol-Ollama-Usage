@@ -26,7 +26,7 @@ PlasmoidItem {
 
     // Config
     property int cfgRefreshInterval: Plasmoid.configuration.refreshInterval || 5
-    property int cfgLanguage: Plasmoid.configuration.language || 0  // 0=Auto, 1=EN, 2=FR
+    property string cfgCookieHeader: Plasmoid.configuration.cookieHeader || ""
 
     implicitWidth: Kirigami.Units.gridUnit * 14
     implicitHeight: Kirigami.Units.gridUnit * 8
@@ -49,59 +49,21 @@ PlasmoidItem {
         )
     }
 
-    function tr(source) {
-        // Simple bilingual lookup: English | French
-        const translations = {
-            "session":               "Session",
-            "weekly":                "Weekly",
-            "click_o":               "Click the Ollama logo to open the connection.",
-            "click_o_fr":            "Cliquez sur le logo Ollama pour ouvrir la connexion.",
-            "login_required":        "Log in to Ollama in your browser, then refresh.",
-            "login_required_fr":     "Connectez-vous à Ollama dans le navigateur, puis actualisez.",
-            "no_cookie":             "No Ollama cookie found. Log in with your default browser, then refresh.",
-            "no_cookie_fr":          "Aucun cookie Ollama trouvé. Connectez-vous dans le navigateur par défaut puis actualisez.",
-            "read_fail":             "Could not read Ollama quotas.",
-            "read_fail_fr":          "Impossible de lire les quotas Ollama.",
-            "invalid_resp":          "Invalid response from Ollama helper.",
-            "invalid_resp_fr":       "Réponse invalide du helper Ollama.",
-            "python_missing":        "Python 3 not found. Please install python3.",
-            "python_missing_fr":     "Python 3 introuvable. Veuillez installer python3.",
-            "script_missing":        "Helper script not found.",
-            "script_missing_fr":     "Script helper introuvable.",
-            "timeout":               "Request to Ollama timed out.",
-            "timeout_fr":            "La requête vers Ollama a expiré.",
-            "network_error":         "Network error contacting Ollama.",
-            "network_error_fr":      "Erreur réseau en contactant Ollama.",
-        };
-
-        // Language: 0=Auto (system locale), 1=English, 2=French
-        let isFrench;
-        if (cfgLanguage === 2) {
-            isFrench = true;
-        } else if (cfgLanguage === 1) {
-            isFrench = false;
-        } else {
-            isFrench = Qt.locale().name.startsWith("fr");
-        }
-
-        if (isFrench) {
-            const frKey = source + "_fr";
-            if (translations[frKey] !== undefined) return translations[frKey];
-        }
-        return translations[source] || source;
-    }
-
     function refreshUsage() {
         if (busy) return;
 
         // Validate helper path
         if (!helperPath || helperPath === "") {
             authenticated = false;
-            statusMessage = tr("script_missing");
+            statusMessage = i18n("Helper script not found.");
             return;
         }
 
-        const command = "python3 \"" + helperPath + "\"";
+        const cookie = root.cfgCookieHeader.trim();
+        let command = "python3 \"" + helperPath + "\"";
+        if (cookie) {
+            command = "OLLAMA_COOKIE_HEADER=\"" + cookie + "\" " + command;
+        }
         lastCommand = command;
         busy = true;
         statusMessage = "";
@@ -115,7 +77,7 @@ PlasmoidItem {
     function applyResult(result) {
         if (!result) {
             authenticated = false;
-            statusMessage = tr("read_fail");
+            statusMessage = i18n("Could not read Ollama quotas.");
             return;
         }
 
@@ -129,9 +91,9 @@ PlasmoidItem {
 
         authenticated = false;
         if (result.status === "login") {
-            statusMessage = tr("login_required");
+            statusMessage = i18n("Log in to Ollama in your browser, then refresh.");
         } else {
-            statusMessage = result.message || tr("read_fail");
+            statusMessage = result.message || i18n("Could not read Ollama quotas.");
         }
     }
 
@@ -164,13 +126,13 @@ PlasmoidItem {
             // Python3 not found
             if (exitCode !== 0 && stderr && (stderr.includes("not found") || stderr.includes("command not found") || stderr.includes("No such file"))) {
                 root.authenticated = false;
-                root.statusMessage = tr("python_missing");
+                root.statusMessage = i18n("Python 3 not found. Please install python3.");
                 return;
             }
 
             if (!stdout) {
                 root.authenticated = false;
-                root.statusMessage = stderr || tr("read_fail");
+                root.statusMessage = stderr || i18n("Could not read Ollama quotas.");
                 return;
             }
 
@@ -178,7 +140,7 @@ PlasmoidItem {
                 root.applyResult(JSON.parse(stdout));
             } catch (error) {
                 root.authenticated = false;
-                root.statusMessage = tr("invalid_resp");
+                root.statusMessage = i18n("Invalid response from Ollama helper.");
             }
         }
     }
@@ -193,7 +155,7 @@ PlasmoidItem {
 
             PlasmaComponents3.Label {
                 Layout.fillWidth: true
-                text: "Ollama Usage"
+                text: i18n("Ollama Usage")
                 font.weight: Font.Bold
                 font.pointSize: Kirigami.Theme.defaultFont.pointSize + 1
                 color: Kirigami.Theme.textColor
@@ -224,7 +186,7 @@ PlasmoidItem {
                 }
 
                 PlasmaComponents3.ToolTip {
-                    text: root.busy ? "" : root.tr("login_required").split(",")[0]
+                    text: root.busy ? "" : i18n("Refresh")
                 }
             }
 
@@ -273,7 +235,7 @@ PlasmoidItem {
 
                     PlasmaComponents3.Label {
                         Layout.fillWidth: true
-                        text: root.tr("session")
+                        text: i18n("Session")
                         font.weight: Font.DemiBold
                         color: Kirigami.Theme.textColor
                     }
@@ -310,7 +272,7 @@ PlasmoidItem {
 
                     PlasmaComponents3.Label {
                         Layout.fillWidth: true
-                        text: root.tr("weekly")
+                        text: i18n("Weekly")
                         font.weight: Font.DemiBold
                         color: Kirigami.Theme.textColor
                     }
@@ -350,7 +312,7 @@ PlasmoidItem {
 
                 PlasmaComponents3.Label {
                     Layout.alignment: Qt.AlignHCenter
-                    text: root.statusMessage || root.tr("login_required")
+                    text: root.statusMessage || i18n("Log in to Ollama in your browser, then refresh.")
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
                     color: Kirigami.Theme.textColor
@@ -358,7 +320,7 @@ PlasmoidItem {
 
                 PlasmaComponents3.Label {
                     Layout.alignment: Qt.AlignHCenter
-                    text: root.tr("click_o")
+                    text: i18n("Click the Ollama logo to open the connection.")
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
                     color: Kirigami.Theme.disabledTextColor
