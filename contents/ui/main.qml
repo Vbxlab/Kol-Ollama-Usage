@@ -174,6 +174,14 @@ PlasmoidItem {
         RowLayout {
             Layout.fillWidth: true
 
+            PlasmaComponents3.Label {
+                Layout.fillWidth: true
+                text: "Ollama Usage"
+                font.weight: Font.Bold
+                font.pointSize: Kirigami.Theme.defaultFont.pointSize + 1
+                color: Kirigami.Theme.textColor
+            }
+
             Item {
                 Layout.fillWidth: true
             }
