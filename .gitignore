@@ -6,6 +6,9 @@
 .kdev4/
 *.kdev4
 
+# Pre-built packages
+*.plasmoid
+
 # OS
 .DS_Store
 Thumbs.db
