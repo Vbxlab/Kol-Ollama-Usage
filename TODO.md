@@ -28,7 +28,7 @@
 - [x] Ajouter un champ "Cookie" dans la config du widget (OLLAMA_COOKIE_HEADER) comme alternative pour les navigateurs chiffrés
 - [x] Screenshot du widget pour le README
 - [x] Tester l'installation et le fonctionnement sur une session Plasma propre
-- [ ] Publier sur le KDE Store / Pling
+- [x] Publier sur le KDE Store / Pling
 
 ## 🐛 Bugs connus
 

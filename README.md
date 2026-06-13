@@ -53,6 +53,10 @@ If browser cookies can't be read (e.g. encrypted Chromium cookies via keyring), 
 
 MIT © Vbxlab
 
+## Links
+
+- **KDE Store**: https://www.opendesktop.org/p/2362529/
+
 ---
 
 *Vibecoded with [Aï](https://openclaw.ai)*
