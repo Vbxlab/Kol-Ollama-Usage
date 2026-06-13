@@ -8,7 +8,7 @@
     "Name": "Kol — Ollama Usage",
     "Description": "Plasma 6 widget that tracks Ollama cloud token usage (session & weekly quotas).",
     "Icon": "network-connect",
-    "Version": "0.3.0",
+    "Version": "0.3.1",
     "Category": "Utilities",
     "License": "MIT",
     "Website": "https://ollama.com/settings",
