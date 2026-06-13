@@ -10,8 +10,8 @@ import org.kde.plasma.plasmoid
 Item {
     id: generalConfig
 
-    property alias cfg_RefreshInterval: refreshSpin.value
-    property alias cfg_CookieHeader: cookieField.text
+    property alias cfg_refreshInterval: refreshSpin.value
+    property alias cfg_cookieHeader: cookieField.text
 
     ColumnLayout {
         anchors.fill: parent

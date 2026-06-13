@@ -25,8 +25,8 @@ PlasmoidItem {
     property string lastCommand: ""
 
     // Config
-    property int cfgRefreshInterval: Plasmoid.configuration.refreshInterval || 5
-    property string cfgCookieHeader: Plasmoid.configuration.cookieHeader || ""
+    property int cfg_refreshInterval: Plasmoid.configuration.refreshInterval || 5
+    property string cfg_cookieHeader: Plasmoid.configuration.cookieHeader || ""
 
     implicitWidth: Kirigami.Units.gridUnit * 14
     implicitHeight: Kirigami.Units.gridUnit * 8
@@ -101,7 +101,7 @@ PlasmoidItem {
 
     Timer {
         id: refreshTimer
-        interval: cfgRefreshInterval * 60000
+        interval: root.cfg_refreshInterval * 60000
         repeat: true
         running: true
         onTriggered: root.refreshUsage()
