@@ -59,7 +59,7 @@ PlasmoidItem {
             return;
         }
 
-        const cookie = root.cfgCookieHeader.trim();
+        const cookie = (root.cfgCookieHeader || "").trim();
         let command = "python3 \"" + helperPath + "\"";
         if (cookie) {
             command = "OLLAMA_COOKIE_HEADER=\"" + cookie + "\" " + command;
